@@ -26,7 +26,7 @@ public class GoogleBooksClient {
 
     private GoogleBooksClient() {
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
 
         final Gson gson =
@@ -34,7 +34,7 @@ public class GoogleBooksClient {
         final Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(GOOGLE_BOOKS_URL)
                 .client(client)
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+//                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
         googleBooksService = retrofit.create(GoogleBooksService.class);
@@ -47,7 +47,7 @@ public class GoogleBooksClient {
         return instance;
     }
 
-    public Observable<BookListItems> getBooks(@NonNull String key, @NonNull String query, @NonNull Integer startIndex, @NonNull Integer maxResults) {
+    public BookListItems getBooks(@NonNull String key, @NonNull String query, @NonNull Integer startIndex, @NonNull Integer maxResults) {
         Map<String, String> queryMap = new HashMap<>();
         queryMap.put("key", key);
         queryMap.put("q", query);

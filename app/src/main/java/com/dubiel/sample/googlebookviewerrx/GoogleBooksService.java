@@ -11,5 +11,5 @@ import rx.Observable;
 
 public interface GoogleBooksService {
     @GET("books/v1/volumes")
-    Observable<BookListItems> queryBooks(@QueryMap Map<String, String> query);
+    BookListItems queryBooks(@QueryMap Map<String, String> query);
 }
