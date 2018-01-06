@@ -1,0 +1,68 @@
+<RelativeLayout android:layout_marginLeft="20dp"
+    android:layout_marginTop="20dp"
+    android:layout_marginBottom="20dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageView
+        android:layout_width="@dimen/small_width"
+        android:layout_height="@dimen/small_height"
+        android:id="@+id/book_detail_item_small"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginRight="20dp"/>
+
+    <TextView
+        android:id="@+id/book_detail_item_title"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="20dp"
+        android:layout_gravity="center"
+        android:textSize="18sp"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:layout_centerVertical="true"
+        android:layout_below="@+id/book_detail_item_small" />
+
+    <TextView
+        android:id="@+id/book_detail_item_author"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_gravity="center"
+        android:textSize="14sp"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:layout_centerVertical="true"
+        android:layout_below="@+id/book_detail_item_title" />
+
+    <WebView
+        android:id="@+id/book_detail_item_description"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="20dp"
+        android:layout_gravity="center"
+        android:textSize="14sp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:layout_centerVertical="true"
+        android:layout_below="@+id/book_detail_item_author" />
+
+    <TextView
+        android:id="@+id/book_detail_item_info_link"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="50dp"
+        android:layout_gravity="center"
+        android:textSize="14sp"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:layout_centerVertical="true"
+        android:autoLink="web"
+        android:layout_below="@+id/book_detail_item_description" />
+
+</RelativeLayout>
+
