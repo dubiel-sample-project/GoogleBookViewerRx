@@ -13,10 +13,12 @@ import java.util.Map;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Observable;
+import rx.Single;
 
 public class GoogleBooksClient {
     private static final String GOOGLE_BOOKS_URL = "https://www.googleapis.com/";
@@ -34,7 +36,7 @@ public class GoogleBooksClient {
         final Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(GOOGLE_BOOKS_URL)
                 .client(client)
-//                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
         googleBooksService = retrofit.create(GoogleBooksService.class);
@@ -47,7 +49,7 @@ public class GoogleBooksClient {
         return instance;
     }
 
-    public BookListItems getBooks(@NonNull String key, @NonNull String query, @NonNull Integer startIndex, @NonNull Integer maxResults) {
+    public Single<BookListItems> getBooks(@NonNull String key, @NonNull String query, @NonNull Integer startIndex, @NonNull Integer maxResults) {
         Map<String, String> queryMap = new HashMap<>();
         queryMap.put("key", key);
         queryMap.put("q", query);

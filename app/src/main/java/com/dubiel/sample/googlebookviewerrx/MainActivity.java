@@ -15,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
+import android.widget.TextView;
 
 import com.dubiel.sample.googlebookviewerrx.data.BookListItem;
 import com.dubiel.sample.googlebookviewerrx.data.BookListItems;
@@ -30,6 +31,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import retrofit2.Call;
 import rx.Observable;
 import rx.Observer;
 import rx.Single;
@@ -74,6 +76,9 @@ public class MainActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+//        TextView textView = (TextView) findViewById(R.id.text_view);
+//        textView.setOnLongClickListener(v -> {System.out.println("Long Click"); return true;});
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
