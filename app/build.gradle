@@ -32,11 +32,11 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:' + rootProject.supportLibVersion
     compile 'com.android.support:cardview-v7:' + rootProject.supportLibVersion
     compile 'com.google.guava:guava:20.0'
-    compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
-    compile 'com.squareup.retrofit2:converter-gson:2.1.0'
-    compile 'com.squareup.retrofit2:retrofit:2.1.0'
-    compile 'io.reactivex:rxandroid:1.2.0'
-    compile 'io.reactivex:rxjava:1.1.8'
+    compile 'com.squareup.retrofit2:adapter-rxjava:' + retrofitVersion
+    compile 'com.squareup.retrofit2:converter-gson:' + retrofitVersion
+    compile 'com.squareup.retrofit2:retrofit:' + retrofitVersion
+    compile 'io.reactivex:rxandroid:1.2.1'
+    compile 'io.reactivex:rxjava:1.3.4'
     compile 'com.squareup.okhttp3:logging-interceptor:3.9.1'
 //    compile 'com.google.dagger:dagger:' + rootProject.daggerVersion
 //    compile 'com.google.dagger:dagger-android:' + rootProject.daggerVersion

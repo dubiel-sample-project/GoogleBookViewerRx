@@ -19,6 +19,7 @@ import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Observable;
 import rx.Single;
+import rx.schedulers.Schedulers;
 
 public class GoogleBooksClient {
     private static final String GOOGLE_BOOKS_URL = "https://www.googleapis.com/";
@@ -28,7 +29,7 @@ public class GoogleBooksClient {
 
     private GoogleBooksClient() {
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
         OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
 
         final Gson gson =
@@ -36,7 +37,7 @@ public class GoogleBooksClient {
         final Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(GOOGLE_BOOKS_URL)
                 .client(client)
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io()))
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
         googleBooksService = retrofit.create(GoogleBooksService.class);
@@ -49,7 +50,18 @@ public class GoogleBooksClient {
         return instance;
     }
 
-    public Single<BookListItems> getBooks(@NonNull String key, @NonNull String query, @NonNull Integer startIndex, @NonNull Integer maxResults) {
+    public Observable<BookListItems> getBooks(@NonNull SearchData data) {
+        Map<String, String> queryMap = new HashMap<>();
+        queryMap.put("key", data.getKey());
+        queryMap.put("q", data.getQuery());
+        queryMap.put("fields", "items(id,selfLink,volumeInfo/title,volumeInfo/imageLinks/smallThumbnail)");
+        queryMap.put("startIndex", data.getStart().toString());
+        queryMap.put("maxResults", data.getMaxResults().toString());
+
+        return googleBooksService.queryBooks(queryMap);
+    }
+
+    public Observable<BookListItems> getBooks(@NonNull String key, @NonNull String query, @NonNull Integer startIndex, @NonNull Integer maxResults) {
         Map<String, String> queryMap = new HashMap<>();
         queryMap.put("key", key);
         queryMap.put("q", query);

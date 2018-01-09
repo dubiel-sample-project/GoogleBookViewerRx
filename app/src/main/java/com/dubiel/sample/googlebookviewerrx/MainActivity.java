@@ -13,11 +13,10 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
-import android.widget.TextView;
 
-import com.dubiel.sample.googlebookviewerrx.data.BookListItem;
 import com.dubiel.sample.googlebookviewerrx.data.BookListItems;
 import com.dubiel.sample.googlebookviewerrx.viewadapter.BookItemListAdapter;
 import com.dubiel.sample.googlebookviewerrx.viewadapter.DrawerListAdapter;
@@ -39,21 +38,52 @@ import rx.SingleSubscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+import rx.subjects.PublishSubject;
 
 public class MainActivity extends AppCompatActivity implements
         DrawerListAdapter.OnDrawerItemClickListener {
     private static final String TAG = MainActivity.class.getSimpleName();
-    private Subscription subscription;
 
+    static final public int MAX_RESULTS = 40;
     static final private int CACHE_MAX_SIZE = 5;
 
-    private Cache<Integer, BookListItems> bookListItemsCache;
+    @NonNull
+    private final PublishSubject<Void> updateSubject = PublishSubject.create();
 
+    @NonNull
+    private final Cache<Integer, BookListItems> bookListItemsCache =  CacheBuilder.newBuilder()
+            .maximumSize(CACHE_MAX_SIZE)
+            .removalListener(new RemovalListener<Integer, BookListItems>() {
+                public void onRemoval(RemovalNotification<Integer, BookListItems> removalNotification) {
+                        updateBookItemListAdapterItemCount();
+                }
+            })
+            .build();
+
+    private Subscription subscription;
     private BookItemListAdapter bookItemListAdapter;
     private RecyclerView drawerList;
     private String currentSearchTerm = "cats";
+    private Integer currentStartIndex = 0;
     private ProgressBar spinner;
     private Boolean cacheLoading = false;
+
+    private void load() {
+        subscription = Observable
+                .defer(() -> Observable.just(getSearchData(currentSearchTerm, currentStartIndex)))
+                .flatMap(data -> GoogleBooksClient.getInstance().getBooks(data))
+                .repeatWhen(repeatHandler ->
+                        repeatHandler.flatMap(nothing -> updateSubject.asObservable()))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(result -> {
+                    System.out.println(result);
+                    bookListItemsCache.put(result.getStartIndex(), result);
+                    updateBookItemListAdapterItemCount();
+                    spinner.setVisibility(View.GONE);
+                    bookItemListAdapter.notifyDataSetChanged();
+                }, err -> {System.out.println(err);});
+    }
 
 //    private final Observer<BookListItems> observer = new Observer<BookListItems>() {
 //        @Override
@@ -76,9 +106,6 @@ public class MainActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-//        TextView textView = (TextView) findViewById(R.id.text_view);
-//        textView.setOnLongClickListener(v -> {System.out.println("Long Click"); return true;});
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -144,19 +171,39 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
-        bookListItemsCache = CacheBuilder.newBuilder()
-                .maximumSize(CACHE_MAX_SIZE)
-                .removalListener(new RemovalListener<Integer, BookListItems>() {
-                    public void onRemoval(RemovalNotification<Integer, BookListItems> removalNotification) {
-//                        updateBookItemListAdapterItemCount();
-                    }
-                })
-                .build();
-
         bookItemListAdapter = new BookItemListAdapter(getApplicationContext(), bookListItemsCache);
         recyclerView.setAdapter(bookItemListAdapter);
 
-        search();
+//        subscription = Observable
+//                .defer(() -> Observable.just(getSearchData()))
+//                .flatMap(data -> GoogleBooksClient.getInstance().getBooks(data))
+//                .subscribeOn(Schedulers.io())
+//                .subscribe(System.out::println);
+
+        final Button buttonSearch = (Button) findViewById(R.id.button_search);
+        buttonSearch.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                currentStartIndex += 40;
+                System.out.println("currentStartIndex: " + currentStartIndex);
+                update();
+            }
+        });
+
+        load();
+//        try {
+//            Thread.sleep(5000);
+//        } catch (InterruptedException e) {
+//
+//        }
+    }
+
+    private void update() {
+        updateSubject.onNext(null);
+    }
+
+    private SearchData getSearchData(String searchTerm, Integer startIndex) {
+        return new SearchData(getApplicationContext().getResources().getString(R.string.google_books_api_key),
+                searchTerm, startIndex, 40);
     }
 
     @Override protected void onDestroy() {
@@ -256,35 +303,35 @@ public class MainActivity extends AppCompatActivity implements
 //        spinner.setVisibility(View.VISIBLE);
         bookListItemsCache.invalidateAll();
 
-        Single<BookListItems> tvShowSingle = Single.fromCallable(new Callable<BookListItems>() {
-            @Override
-            public BookListItems call() throws Exception {
-                return GoogleBooksClient.getInstance()
-                .getBooks("AIzaSyBaTPJ5YXt5V6VSuvnxhIgj4NJZ1vJqtmM",
-                        "cats",
-                        0,
-                        40);
-            }
-        });
-
-        subscription = tvShowSingle
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new SingleSubscriber<BookListItems>() {
-
-                    @Override
-                    public void onSuccess(BookListItems bookListItems) {
-                        System.out.println("In onSuccess()");
-                        System.out.println("BookListItems length: " + bookListItems.getItems().length);
-                    }
-
-                    @Override
-                    public void onError(Throwable error) {
-                        System.out.println("In onError()");
-                        System.out.println(error.getMessage());
-                        System.out.println(error.getStackTrace().toString());
-                    }
-                });
+//        Single<BookListItems> tvShowSingle = Single.fromCallable(new Callable<BookListItems>() {
+//            @Override
+//            public BookListItems call() throws Exception {
+//                return GoogleBooksClient.getInstance()
+//                .getBooks("AIzaSyBaTPJ5YXt5V6VSuvnxhIgj4NJZ1vJqtmM",
+//                        "cats",
+//                        0,
+//                        40);
+//            }
+//        });
+//
+//        subscription = tvShowSingle
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new SingleSubscriber<BookListItems>() {
+//
+//                    @Override
+//                    public void onSuccess(BookListItems bookListItems) {
+//                        System.out.println("In onSuccess()");
+//                        System.out.println("BookListItems length: " + bookListItems.getItems().length);
+//                    }
+//
+//                    @Override
+//                    public void onError(Throwable error) {
+//                        System.out.println("In onError()");
+//                        System.out.println(error.getMessage());
+//                        System.out.println(error.getStackTrace().toString());
+//                    }
+//                });
 
 //        subscription = GoogleBooksClient.getInstance()
 //                .getBooks("AIzaSyBaTPJ5YXt5V6VSuvnxhIgj4NJZ1vJqtmM",
@@ -335,8 +382,7 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         int maxKey = Collections.max(bookListItemsCache.asMap().keySet());
-//        int itemCount = maxKey * SearchManager.MAX_RESULTS;
-        int itemCount = 0;
+        int itemCount = maxKey * MAX_RESULTS;
         BookListItems bookListItems = bookListItemsCache.getIfPresent(maxKey);
         if(bookListItems instanceof BookListItems) {
             itemCount += bookListItems.getItems().length;

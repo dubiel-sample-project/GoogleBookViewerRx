@@ -18,6 +18,8 @@ import com.dubiel.sample.googlebookviewerrx.data.BookListItem;
 import com.dubiel.sample.googlebookviewerrx.data.BookListItems;
 import com.google.common.cache.Cache;
 
+import static com.dubiel.sample.googlebookviewerrx.MainActivity.MAX_RESULTS;
+
 public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapter.ViewHolder> {
 
     static final private String TAG = "BookItemListAdapter";
@@ -43,12 +45,12 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
 
     @Override
     public void onBindViewHolder(final BookItemListAdapter.ViewHolder viewHolder, int i) {
-        int key = (int)Math.floor(i / 40);
+        int key = (int)Math.floor(i / MAX_RESULTS);
 
         try {
             BookListItems currentBookListItems = bookListItems.getIfPresent(key);
 
-            int bookListItemIndex = i % 40;
+            int bookListItemIndex = i % MAX_RESULTS;
 
             if(bookListItemIndex >= currentBookListItems.getItems().length) {
                 return;
