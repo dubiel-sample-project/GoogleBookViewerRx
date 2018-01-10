@@ -33,7 +33,8 @@ public class GoogleBooksClient {
         OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
 
         final Gson gson =
-                new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+//                new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+                new GsonBuilder().create();
         final Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(GOOGLE_BOOKS_URL)
                 .client(client)

@@ -25,16 +25,9 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Callable;
 
-import retrofit2.Call;
 import rx.Observable;
-import rx.Observer;
-import rx.Single;
-import rx.SingleSubscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -77,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(result -> {
-                    System.out.println(result);
+                    System.out.println(result.getItems()[0].getVolumeInfo().getTitle());
                     bookListItemsCache.put(result.getStartIndex(), result);
                     updateBookItemListAdapterItemCount();
                     spinner.setVisibility(View.GONE);
@@ -180,14 +173,14 @@ public class MainActivity extends AppCompatActivity implements
 //                .subscribeOn(Schedulers.io())
 //                .subscribe(System.out::println);
 
-        final Button buttonSearch = (Button) findViewById(R.id.button_search);
-        buttonSearch.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
-                currentStartIndex += 40;
-                System.out.println("currentStartIndex: " + currentStartIndex);
-                update();
-            }
-        });
+//        final Button buttonSearch = (Button) findViewById(R.id.button_search);
+//        buttonSearch.setOnClickListener(new View.OnClickListener() {
+//            @Override public void onClick(View v) {
+//                currentStartIndex += 40;
+//                System.out.println("currentStartIndex: " + currentStartIndex);
+//                update();
+//            }
+//        });
 
         load();
 //        try {

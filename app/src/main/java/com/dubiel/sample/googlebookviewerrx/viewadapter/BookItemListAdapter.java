@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.dubiel.sample.googlebookviewerrx.R;
 import com.dubiel.sample.googlebookviewerrx.bookdetail.BookDetailActivity;
 import com.dubiel.sample.googlebookviewerrx.bookdetail.BookDetailActivityFragment;
@@ -59,6 +60,13 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
             BookListItem currentBookListItem = currentBookListItems.getItems()[bookListItemIndex];
 
             viewHolder.selfLink = currentBookListItem.getSelfLink();
+            try {
+                Glide.with(context)
+                        .load(currentBookListItem.getVolumeInfo().getImageLinks().getSmallThumbnail())
+                        .into(viewHolder.smallThumbnail);
+            } catch(NullPointerException e) {
+                Log.i(BookItemListAdapter.TAG, "small thumbnail image of " + currentBookListItem.getSelfLink() + " not present");
+            }
             viewHolder.title.setText(currentBookListItem.getVolumeInfo().getTitle());
 
             viewHolder.view.setOnClickListener(new View.OnClickListener() {
