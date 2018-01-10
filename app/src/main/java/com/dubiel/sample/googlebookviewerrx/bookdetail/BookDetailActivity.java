@@ -14,8 +14,8 @@ public class BookDetailActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             Bundle arguments = new Bundle();
-            arguments.putString(BookDetailActivityFragment.ARG_SELF_LINK,
-                    getIntent().getStringExtra(BookDetailActivityFragment.ARG_SELF_LINK));
+            arguments.putString(BookDetailActivityFragment.ARG_VOLUME_ID,
+                    getIntent().getStringExtra(BookDetailActivityFragment.ARG_VOLUME_ID));
             BookDetailActivityFragment fragment = new BookDetailActivityFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()

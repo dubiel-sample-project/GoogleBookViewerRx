@@ -13,7 +13,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 
@@ -44,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements
     private final PublishSubject<Void> updateSubject = PublishSubject.create();
 
     @NonNull
-    private final Cache<Integer, BookListItems> bookListItemsCache =  CacheBuilder.newBuilder()
+    private final Cache<Integer, BookListItems> bookListItemsCache = CacheBuilder.newBuilder()
             .maximumSize(CACHE_MAX_SIZE)
             .removalListener(new RemovalListener<Integer, BookListItems>() {
                 public void onRemoval(RemovalNotification<Integer, BookListItems> removalNotification) {
@@ -146,20 +145,20 @@ public class MainActivity extends AppCompatActivity implements
                 super.onScrolled(recyclerView, dx, dy);
 
                 if (!cacheLoading) {
-//                    LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-//                    if (dy < 0) {
+                    LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                    if (dy < 0) {
 //                        int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
 //                        int cacheKey = (int)Math.floor((firstVisibleItemPosition - 1) / SearchManager.MAX_RESULTS);
 //                        if(!(bookListItemsCache.getIfPresent(cacheKey) instanceof BookListItems)) {
 //                            updateCache(firstVisibleItemPosition - 1);
 //                        }
-//                    } else if (dy > 0) {
-//                        int lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition();
-//                        int cacheKey = (int)Math.floor((lastVisibleItemPosition + 1) / SearchManager.MAX_RESULTS);
-//                        if(!(bookListItemsCache.getIfPresent(cacheKey) instanceof BookListItems)) {
-//                            updateCache(lastVisibleItemPosition + 1);
-//                        }
-//                    }
+                    } else if (dy > 0) {
+                        int lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition();
+                        int cacheKey = (int)Math.floor((lastVisibleItemPosition + 1) / MAX_RESULTS);
+                        if(!(bookListItemsCache.getIfPresent(cacheKey) instanceof BookListItems)) {
+                            updateCache(lastVisibleItemPosition + 1);
+                        }
+                    }
                 }
             }
         });
@@ -194,8 +193,8 @@ public class MainActivity extends AppCompatActivity implements
         updateSubject.onNext(null);
     }
 
-    private SearchData getSearchData(String searchTerm, Integer startIndex) {
-        return new SearchData(getApplicationContext().getResources().getString(R.string.google_books_api_key),
+    private GoogleBooksParameters getSearchData(String searchTerm, Integer startIndex) {
+        return new GoogleBooksParameters(getApplicationContext().getResources().getString(R.string.google_books_api_key),
                 searchTerm, startIndex, 40);
     }
 
@@ -267,15 +266,15 @@ public class MainActivity extends AppCompatActivity implements
         drawer.closeDrawer(GravityCompat.START);
     }
 
-    public void onResultsReady(boolean resetScrollPosition) {
-        cacheLoading = false;
-        spinner.setVisibility(View.GONE);
-        bookItemListAdapter.notifyDataSetChanged();
-
-        if(resetScrollPosition) {
-            ((RecyclerView) findViewById(R.id.book_item_list_recycler_view)).scrollToPosition(0);
-        }
-    }
+//    public void onResultsReady(boolean resetScrollPosition) {
+//        cacheLoading = false;
+//        spinner.setVisibility(View.GONE);
+//        bookItemListAdapter.notifyDataSetChanged();
+//
+//        if(resetScrollPosition) {
+//            ((RecyclerView) findViewById(R.id.book_item_list_recycler_view)).scrollToPosition(0);
+//        }
+//    }
 
 //    private Observable<BookListItems> getObservable(@NonNull String searchTerm, @NonNull int startIndex, @NonNull int maxResults) {
 //        return GoogleBooksClient.getInstance()
@@ -357,8 +356,8 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         cacheLoading = true;
-        int cacheKey = (int)Math.floor(key / 40);
 
+        int cacheKey = (int)Math.floor(key / MAX_RESULTS);
         if(bookListItemsCache.getIfPresent(cacheKey) instanceof BookListItems) {
             cacheLoading = false;
             spinner.setVisibility(View.GONE);
@@ -366,6 +365,9 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         spinner.setVisibility(View.VISIBLE);
+
+        currentStartIndex += MAX_RESULTS;
+        update();
     }
 
     private void updateBookItemListAdapterItemCount() {

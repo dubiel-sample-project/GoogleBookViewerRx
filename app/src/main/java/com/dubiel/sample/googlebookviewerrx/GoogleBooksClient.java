@@ -3,8 +3,8 @@ package com.dubiel.sample.googlebookviewerrx;
 
 import android.support.annotation.NonNull;
 
+import com.dubiel.sample.googlebookviewerrx.data.BookDetailItem;
 import com.dubiel.sample.googlebookviewerrx.data.BookListItems;
-import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -13,7 +13,6 @@ import java.util.Map;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
-import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -51,7 +50,11 @@ public class GoogleBooksClient {
         return instance;
     }
 
-    public Observable<BookListItems> getBooks(@NonNull SearchData data) {
+    public Single<BookDetailItem> getVolume(@NonNull String volumeId) {
+        return googleBooksService.queryVolume(volumeId);
+    }
+
+    public Observable<BookListItems> getBooks(@NonNull GoogleBooksParameters data) {
         Map<String, String> queryMap = new HashMap<>();
         queryMap.put("key", data.getKey());
         queryMap.put("q", data.getQuery());

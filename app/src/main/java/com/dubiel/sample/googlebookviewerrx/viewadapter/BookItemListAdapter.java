@@ -59,7 +59,7 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
 
             BookListItem currentBookListItem = currentBookListItems.getItems()[bookListItemIndex];
 
-            viewHolder.selfLink = currentBookListItem.getSelfLink();
+            viewHolder.volumeId = currentBookListItem.getId();
             try {
                 Glide.with(context)
                         .load(currentBookListItem.getVolumeInfo().getImageLinks().getSmallThumbnail())
@@ -74,7 +74,7 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
                 public void onClick(View v) {
                     Context context = v.getContext();
                     Intent intent = new Intent(context, BookDetailActivity.class);
-                    intent.putExtra(BookDetailActivityFragment.ARG_SELF_LINK, viewHolder.selfLink);
+                    intent.putExtra(BookDetailActivityFragment.ARG_VOLUME_ID, viewHolder.volumeId);
 
                     context.startActivity(intent);
                 }
@@ -101,7 +101,7 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
         private TextView title;
 
         public final View view;
-        public String selfLink;
+        public String volumeId;
 
         public ViewHolder(View view) {
             super(view);
