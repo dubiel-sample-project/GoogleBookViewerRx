@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -69,12 +70,18 @@ public class MainActivity extends AppCompatActivity implements
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(result -> {
-                    System.out.println(result.getItems()[0].getVolumeInfo().getTitle());
-                    bookListItemsCache.put(result.getStartIndex(), result);
+//                    System.out.println(result.getItems()[0].getVolumeInfo().getTitle());
+                    int cacheKey = currentStartIndex / MAX_RESULTS;
+                    bookListItemsCache.put(cacheKey, result);
                     updateBookItemListAdapterItemCount();
                     spinner.setVisibility(View.GONE);
                     bookItemListAdapter.notifyDataSetChanged();
-                }, err -> {System.out.println(err);});
+                    cacheLoading = false;
+                }, err -> {
+                    System.out.println(err);
+                    Log.i(TAG, err.getMessage());
+                    cacheLoading = false;
+                });
     }
 
 //    private final Observer<BookListItems> observer = new Observer<BookListItems>() {
@@ -155,6 +162,7 @@ public class MainActivity extends AppCompatActivity implements
                     } else if (dy > 0) {
                         int lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition();
                         int cacheKey = (int)Math.floor((lastVisibleItemPosition + 1) / MAX_RESULTS);
+//                        System.out.println("cacheKey: " + cacheKey);
                         if(!(bookListItemsCache.getIfPresent(cacheKey) instanceof BookListItems)) {
                             updateCache(lastVisibleItemPosition + 1);
                         }
