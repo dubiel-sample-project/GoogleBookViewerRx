@@ -1,5 +1,6 @@
 package com.dubiel.sample.googlebookviewerrx;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.view.GravityCompat;
@@ -27,18 +28,29 @@ import com.google.common.cache.RemovalNotification;
 
 import java.util.Collections;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+import dagger.android.AndroidInjection;
+import dagger.android.AndroidInjector;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.HasFragmentInjector;
+import dagger.android.support.DaggerAppCompatActivity;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 
-public class MainActivity extends AppCompatActivity implements
+public class MainActivity extends DaggerAppCompatActivity implements HasFragmentInjector,
         DrawerListAdapter.OnDrawerItemClickListener {
     private static final String TAG = MainActivity.class.getSimpleName();
 
     static final public int MAX_RESULTS = 40;
     static final private int CACHE_MAX_SIZE = 5;
+
+    @Inject
+    GoogleBooksClient googleBooksClient;
 
     @NonNull
     private final PublishSubject<Void> updateSubject = PublishSubject.create();
@@ -64,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements
     private void load() {
         subscription = Observable
                 .defer(() -> Observable.just(getSearchData(currentSearchTerm, currentStartIndex)))
-                .flatMap(data -> GoogleBooksClient.getInstance().getBooks(data))
+                .flatMap(data -> googleBooksClient.getBooks(data))
                 .repeatWhen(repeatHandler ->
                         repeatHandler.flatMap(nothing -> updateSubject.asObservable()))
                 .subscribeOn(Schedulers.io())
@@ -84,25 +96,10 @@ public class MainActivity extends AppCompatActivity implements
                 });
     }
 
-//    private final Observer<BookListItems> observer = new Observer<BookListItems>() {
-//        @Override
-//        public void onCompleted() {
-//            System.out.println("All data emitted.");
-//        }
-//
-//        @Override
-//        public void onError(Throwable e) {
-//            System.out.println("Error received: " + e.getMessage());
-//        }
-//
-//        @Override public void onNext(BookListItems books) {
-//            System.out.println("In onNext()");
-//            System.out.println("BookListItems length: " + books.getItems().length);
-//        }
-//    };
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        AndroidInjection.inject(this);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -190,11 +187,6 @@ public class MainActivity extends AppCompatActivity implements
 //        });
 
         load();
-//        try {
-//            Thread.sleep(5000);
-//        } catch (InterruptedException e) {
-//
-//        }
     }
 
     private void update() {
@@ -284,78 +276,9 @@ public class MainActivity extends AppCompatActivity implements
 //        }
 //    }
 
-//    private Observable<BookListItems> getObservable(@NonNull String searchTerm, @NonNull int startIndex, @NonNull int maxResults) {
-//        return GoogleBooksClient.getInstance()
-//                .getBooks(getApplicationContext().getResources().getString(R.string.google_books_api_key),
-//                        "cats",
-//                        startIndex,
-//                        maxResults);
-//    }
-//
-//    private Subscription getSubscription(@NonNull Observable<BookListItems> observable) {
-//        return observable
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(observer);
-//    }
-
     private void search() {
 //        spinner.setVisibility(View.VISIBLE);
         bookListItemsCache.invalidateAll();
-
-//        Single<BookListItems> tvShowSingle = Single.fromCallable(new Callable<BookListItems>() {
-//            @Override
-//            public BookListItems call() throws Exception {
-//                return GoogleBooksClient.getInstance()
-//                .getBooks("AIzaSyBaTPJ5YXt5V6VSuvnxhIgj4NJZ1vJqtmM",
-//                        "cats",
-//                        0,
-//                        40);
-//            }
-//        });
-//
-//        subscription = tvShowSingle
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new SingleSubscriber<BookListItems>() {
-//
-//                    @Override
-//                    public void onSuccess(BookListItems bookListItems) {
-//                        System.out.println("In onSuccess()");
-//                        System.out.println("BookListItems length: " + bookListItems.getItems().length);
-//                    }
-//
-//                    @Override
-//                    public void onError(Throwable error) {
-//                        System.out.println("In onError()");
-//                        System.out.println(error.getMessage());
-//                        System.out.println(error.getStackTrace().toString());
-//                    }
-//                });
-
-//        subscription = GoogleBooksClient.getInstance()
-//                .getBooks("AIzaSyBaTPJ5YXt5V6VSuvnxhIgj4NJZ1vJqtmM",
-//                        "cats",
-//                        0,
-//                        40)
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new Observer<BookListItems>() {
-//                    @Override public void onCompleted() {
-//                        System.out.println("In onCompleted()");
-//                    }
-//
-//                    @Override public void onError(Throwable e) {
-//                        e.printStackTrace();
-//                        System.out.println("In onError()");
-//                        System.out.println(e.getCause());
-//                    }
-//
-//                    @Override public void onNext(BookListItems books) {
-//                        System.out.println("In onNext()");
-//                        System.out.println("BookListItems length: " + books.getItems().length);
-//                    }
-//                });
     }
 
     private void updateCache(int key) {
@@ -393,4 +316,5 @@ public class MainActivity extends AppCompatActivity implements
 
         bookItemListAdapter.setItemCount(itemCount);
     }
+
 }

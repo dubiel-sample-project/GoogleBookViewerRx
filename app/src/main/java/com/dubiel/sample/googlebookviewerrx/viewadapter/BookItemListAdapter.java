@@ -75,7 +75,6 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
                     Context context = v.getContext();
                     Intent intent = new Intent(context, BookDetailActivity.class);
                     intent.putExtra(BookDetailActivityFragment.ARG_VOLUME_ID, viewHolder.volumeId);
-
                     context.startActivity(intent);
                 }
             });

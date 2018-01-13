@@ -11,6 +11,8 @@ import com.google.gson.GsonBuilder;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -23,10 +25,10 @@ import rx.schedulers.Schedulers;
 public class GoogleBooksClient {
     private static final String GOOGLE_BOOKS_URL = "https://www.googleapis.com/";
 
-    private static GoogleBooksClient instance;
     private GoogleBooksService googleBooksService;
 
-    private GoogleBooksClient() {
+    @Inject
+    public GoogleBooksClient() {
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
         OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
@@ -41,13 +43,6 @@ public class GoogleBooksClient {
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
         googleBooksService = retrofit.create(GoogleBooksService.class);
-    }
-
-    public static GoogleBooksClient getInstance() {
-        if (instance == null) {
-            instance = new GoogleBooksClient();
-        }
-        return instance;
     }
 
     public Single<BookDetailItem> getVolume(@NonNull String volumeId) {

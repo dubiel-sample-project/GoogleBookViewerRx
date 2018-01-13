@@ -1,8 +1,9 @@
 package com.dubiel.sample.googlebookviewerrx.bookdetail;
 
+import android.content.Context;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,19 +17,32 @@ import com.dubiel.sample.googlebookviewerrx.GoogleBooksClient;
 import com.dubiel.sample.googlebookviewerrx.R;
 import com.google.common.base.Joiner;
 
+import javax.inject.Inject;
+
+import dagger.android.AndroidInjection;
+import dagger.android.support.AndroidSupportInjection;
+import dagger.android.support.DaggerFragment;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class BookDetailActivityFragment extends Fragment {
+public class BookDetailActivityFragment extends DaggerFragment {
 
     public static final String ARG_VOLUME_ID = "volume_id";
     private static final String TAG = BookDetailActivityFragment.class.getSimpleName();
+
+    @Inject
+    GoogleBooksClient googleBooksClient;
 
     private String volumeId;
     private int smallImageWidth, smallImageHeight;
 
     public BookDetailActivityFragment() {
 
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
     }
 
     @Override
@@ -55,7 +69,7 @@ public class BookDetailActivityFragment extends Fragment {
         final WebView description = (WebView) rootView.findViewById(R.id.book_detail_item_description);
         final TextView infoLink = (TextView) rootView.findViewById(R.id.book_detail_item_info_link);
 
-        GoogleBooksClient.getInstance().getVolume(volumeId)
+        googleBooksClient.getVolume(volumeId)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(bookDetailItem -> {
