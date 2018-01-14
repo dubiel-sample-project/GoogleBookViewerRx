@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -22,6 +23,7 @@ import rx.Observable;
 import rx.Single;
 import rx.schedulers.Schedulers;
 
+@Singleton
 public class GoogleBooksClient {
     private static final String GOOGLE_BOOKS_URL = "https://www.googleapis.com/";
 

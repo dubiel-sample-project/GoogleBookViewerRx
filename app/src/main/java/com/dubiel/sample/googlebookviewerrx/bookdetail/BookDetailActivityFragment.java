@@ -3,7 +3,6 @@ package com.dubiel.sample.googlebookviewerrx.bookdetail;
 import android.content.Context;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,9 +18,8 @@ import com.google.common.base.Joiner;
 
 import javax.inject.Inject;
 
-import dagger.android.AndroidInjection;
-import dagger.android.support.AndroidSupportInjection;
 import dagger.android.support.DaggerFragment;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
@@ -35,6 +33,7 @@ public class BookDetailActivityFragment extends DaggerFragment {
 
     private String volumeId;
     private int smallImageWidth, smallImageHeight;
+    private Subscription subscription;
 
     public BookDetailActivityFragment() {
 
@@ -69,7 +68,7 @@ public class BookDetailActivityFragment extends DaggerFragment {
         final WebView description = (WebView) rootView.findViewById(R.id.book_detail_item_description);
         final TextView infoLink = (TextView) rootView.findViewById(R.id.book_detail_item_info_link);
 
-        googleBooksClient.getVolume(volumeId)
+        subscription = googleBooksClient.getVolume(volumeId)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(bookDetailItem -> {
@@ -103,5 +102,13 @@ public class BookDetailActivityFragment extends DaggerFragment {
                 });
 
         return rootView;
+    }
+
+    @Override
+    public void onDestroy() {
+        if (subscription != null && !subscription.isUnsubscribed()) {
+            subscription.unsubscribe();
+        }
+        super.onDestroy();
     }
 }

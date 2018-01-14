@@ -1,12 +1,10 @@
 package com.dubiel.sample.googlebookviewerrx;
 
-import android.app.Fragment;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -29,11 +27,8 @@ import com.google.common.cache.RemovalNotification;
 import java.util.Collections;
 
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
 import dagger.android.AndroidInjection;
-import dagger.android.AndroidInjector;
-import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasFragmentInjector;
 import dagger.android.support.DaggerAppCompatActivity;
 import rx.Observable;
@@ -47,7 +42,7 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
     private static final String TAG = MainActivity.class.getSimpleName();
 
     static final public int MAX_RESULTS = 40;
-    static final private int CACHE_MAX_SIZE = 5;
+    static final private int CACHE_MAX_SIZE = 2;
 
     @Inject
     GoogleBooksClient googleBooksClient;
@@ -72,29 +67,6 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
     private Integer currentStartIndex = 0;
     private ProgressBar spinner;
     private Boolean cacheLoading = false;
-
-    private void load() {
-        subscription = Observable
-                .defer(() -> Observable.just(getSearchData(currentSearchTerm, currentStartIndex)))
-                .flatMap(data -> googleBooksClient.getBooks(data))
-                .repeatWhen(repeatHandler ->
-                        repeatHandler.flatMap(nothing -> updateSubject.asObservable()))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(result -> {
-//                    System.out.println(result.getItems()[0].getVolumeInfo().getTitle());
-                    int cacheKey = currentStartIndex / MAX_RESULTS;
-                    bookListItemsCache.put(cacheKey, result);
-                    updateBookItemListAdapterItemCount();
-                    spinner.setVisibility(View.GONE);
-                    bookItemListAdapter.notifyDataSetChanged();
-                    cacheLoading = false;
-                }, err -> {
-                    System.out.println(err);
-                    Log.i(TAG, err.getMessage());
-                    cacheLoading = false;
-                });
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,18 +123,27 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
                 if (!cacheLoading) {
                     LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
                     if (dy < 0) {
-//                        int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
-//                        int cacheKey = (int)Math.floor((firstVisibleItemPosition - 1) / SearchManager.MAX_RESULTS);
+                        int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+                        System.out.println("firstVisibleItemPosition: " + firstVisibleItemPosition);
+                        System.out.println("get item count: " + bookItemListAdapter.getItemCount());
+
+                        int cacheKey = (int)Math.floor((firstVisibleItemPosition - 1) / MAX_RESULTS);
+                        System.out.println("cacheKey: " + cacheKey);
+
 //                        if(!(bookListItemsCache.getIfPresent(cacheKey) instanceof BookListItems)) {
 //                            updateCache(firstVisibleItemPosition - 1);
 //                        }
                     } else if (dy > 0) {
                         int lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition();
+                        System.out.println("lastVisibleItemPosition: " + lastVisibleItemPosition);
+                        System.out.println("get item count: " + bookItemListAdapter.getItemCount());
+
                         int cacheKey = (int)Math.floor((lastVisibleItemPosition + 1) / MAX_RESULTS);
-//                        System.out.println("cacheKey: " + cacheKey);
-                        if(!(bookListItemsCache.getIfPresent(cacheKey) instanceof BookListItems)) {
-                            updateCache(lastVisibleItemPosition + 1);
-                        }
+                        System.out.println("cacheKey: " + cacheKey);
+
+//                        if(!(bookListItemsCache.getIfPresent(cacheKey) instanceof BookListItems)) {
+//                            updateCache(lastVisibleItemPosition + 1);
+//                        }
                     }
                 }
             }
@@ -186,16 +167,25 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
 //            }
 //        });
 
-        load();
-    }
-
-    private void update() {
-        updateSubject.onNext(null);
-    }
-
-    private GoogleBooksParameters getSearchData(String searchTerm, Integer startIndex) {
-        return new GoogleBooksParameters(getApplicationContext().getResources().getString(R.string.google_books_api_key),
-                searchTerm, startIndex, 40);
+        spinner.setVisibility(View.VISIBLE);
+        subscription = Observable
+                .defer(() -> Observable.just(getSearchData(currentSearchTerm, currentStartIndex)))
+                .flatMap(data -> googleBooksClient.getBooks(data))
+                .repeatWhen(repeatHandler ->
+                        repeatHandler.flatMap(nothing -> updateSubject.asObservable()))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(result -> {
+                    int cacheKey = currentStartIndex / MAX_RESULTS;
+                    bookListItemsCache.put(cacheKey, result);
+                    updateBookItemListAdapterItemCount();
+                    spinner.setVisibility(View.GONE);
+                    bookItemListAdapter.notifyDataSetChanged();
+                    cacheLoading = false;
+                }, err -> {
+                    Log.i(TAG, err.getMessage());
+                    cacheLoading = false;
+                });
     }
 
     @Override protected void onDestroy() {
@@ -264,6 +254,8 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
+
+        search();
     }
 
 //    public void onResultsReady(boolean resetScrollPosition) {
@@ -276,9 +268,20 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
 //        }
 //    }
 
+    private void update() {
+        updateSubject.onNext(null);
+    }
+
+    private GoogleBooksParameters getSearchData(String searchTerm, Integer startIndex) {
+        return new GoogleBooksParameters(getApplicationContext().getResources().getString(R.string.google_books_api_key),
+                searchTerm, startIndex, MAX_RESULTS);
+    }
+
     private void search() {
-//        spinner.setVisibility(View.VISIBLE);
+        spinner.setVisibility(View.VISIBLE);
         bookListItemsCache.invalidateAll();
+        currentStartIndex = 0;
+        update();
     }
 
     private void updateCache(int key) {
@@ -314,7 +317,7 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
             itemCount += bookListItems.getItems().length;
         }
 
+        System.out.println("item count: " + itemCount);
         bookItemListAdapter.setItemCount(itemCount);
     }
-
 }
