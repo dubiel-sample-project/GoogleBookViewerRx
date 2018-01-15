@@ -88,7 +88,7 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
         if(bookListItems.size() == 0) {
             return 0;
         }
-        return (int)bookListItems.size() * MAX_RESULTS;
+        return itemCount;
     }
 
     public void setItemCount(int itemCount) {

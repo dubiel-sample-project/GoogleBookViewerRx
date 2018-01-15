@@ -243,26 +243,6 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
         update();
     }
 
-//    private void updateCache(int key) {
-//        if(cacheLoading) {
-//            return;
-//        }
-//
-//        cacheLoading = true;
-//
-//        int cacheKey = (int)Math.floor(key / MAX_RESULTS);
-//        if(bookListItemsCache.getIfPresent(cacheKey) instanceof BookListItems) {
-//            cacheLoading = false;
-//            spinner.setVisibility(View.GONE);
-//            return;
-//        }
-//
-//        spinner.setVisibility(View.VISIBLE);
-//
-//        currentStartIndex += MAX_RESULTS;
-//        update();
-//    }
-
     private void updateBookItemListAdapterItemCount() {
         if(bookListItemsCache.asMap().keySet().size() == 0) {
             bookItemListAdapter.setItemCount(0);
