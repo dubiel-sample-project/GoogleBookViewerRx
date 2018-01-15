@@ -42,7 +42,7 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
     private static final String TAG = MainActivity.class.getSimpleName();
 
     static final public int MAX_RESULTS = 40;
-    static final private int CACHE_MAX_SIZE = 2;
+    static final private int CACHE_MAX_SIZE = 8;
 
     @Inject
     GoogleBooksClient googleBooksClient;
@@ -115,35 +115,25 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        recyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
+        // @Todo, implement RxBinding for RecylcerView or better scrolling solution
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
 
                 if (!cacheLoading) {
-                    LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-                    if (dy < 0) {
-                        int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
-                        System.out.println("firstVisibleItemPosition: " + firstVisibleItemPosition);
-                        System.out.println("get item count: " + bookItemListAdapter.getItemCount());
-
-                        int cacheKey = (int)Math.floor((firstVisibleItemPosition - 1) / MAX_RESULTS);
-                        System.out.println("cacheKey: " + cacheKey);
-
-//                        if(!(bookListItemsCache.getIfPresent(cacheKey) instanceof BookListItems)) {
-//                            updateCache(firstVisibleItemPosition - 1);
-//                        }
-                    } else if (dy > 0) {
-                        int lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition();
-                        System.out.println("lastVisibleItemPosition: " + lastVisibleItemPosition);
-                        System.out.println("get item count: " + bookItemListAdapter.getItemCount());
-
-                        int cacheKey = (int)Math.floor((lastVisibleItemPosition + 1) / MAX_RESULTS);
-                        System.out.println("cacheKey: " + cacheKey);
-
-//                        if(!(bookListItemsCache.getIfPresent(cacheKey) instanceof BookListItems)) {
-//                            updateCache(lastVisibleItemPosition + 1);
-//                        }
+                    if (!recyclerView.canScrollVertically(-1)) {
+                        int minKey = Collections.min(bookListItemsCache.asMap().keySet());
+                        if(minKey > 0) {
+                            spinner.setVisibility(View.VISIBLE);
+                            currentStartIndex = (minKey - 1) * MAX_RESULTS;
+                            update();
+                        }
+                    } else if (!recyclerView.canScrollVertically(1)) {
+                        int maxKey = Collections.max(bookListItemsCache.asMap().keySet());
+                        spinner.setVisibility(View.VISIBLE);
+                        currentStartIndex = (maxKey + 1) * MAX_RESULTS;
+                        update();
                     }
                 }
             }
@@ -151,21 +141,6 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
 
         bookItemListAdapter = new BookItemListAdapter(getApplicationContext(), bookListItemsCache);
         recyclerView.setAdapter(bookItemListAdapter);
-
-//        subscription = Observable
-//                .defer(() -> Observable.just(getSearchData()))
-//                .flatMap(data -> GoogleBooksClient.getInstance().getBooks(data))
-//                .subscribeOn(Schedulers.io())
-//                .subscribe(System.out::println);
-
-//        final Button buttonSearch = (Button) findViewById(R.id.button_search);
-//        buttonSearch.setOnClickListener(new View.OnClickListener() {
-//            @Override public void onClick(View v) {
-//                currentStartIndex += 40;
-//                System.out.println("currentStartIndex: " + currentStartIndex);
-//                update();
-//            }
-//        });
 
         spinner.setVisibility(View.VISIBLE);
         subscription = Observable
@@ -180,7 +155,6 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
                     bookListItemsCache.put(cacheKey, result);
                     updateBookItemListAdapterItemCount();
                     spinner.setVisibility(View.GONE);
-                    bookItemListAdapter.notifyDataSetChanged();
                     cacheLoading = false;
                 }, err -> {
                     Log.i(TAG, err.getMessage());
@@ -233,12 +207,7 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
@@ -258,16 +227,6 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
         search();
     }
 
-//    public void onResultsReady(boolean resetScrollPosition) {
-//        cacheLoading = false;
-//        spinner.setVisibility(View.GONE);
-//        bookItemListAdapter.notifyDataSetChanged();
-//
-//        if(resetScrollPosition) {
-//            ((RecyclerView) findViewById(R.id.book_item_list_recycler_view)).scrollToPosition(0);
-//        }
-//    }
-
     private void update() {
         updateSubject.onNext(null);
     }
@@ -284,25 +243,25 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
         update();
     }
 
-    private void updateCache(int key) {
-        if(cacheLoading) {
-            return;
-        }
-
-        cacheLoading = true;
-
-        int cacheKey = (int)Math.floor(key / MAX_RESULTS);
-        if(bookListItemsCache.getIfPresent(cacheKey) instanceof BookListItems) {
-            cacheLoading = false;
-            spinner.setVisibility(View.GONE);
-            return;
-        }
-
-        spinner.setVisibility(View.VISIBLE);
-
-        currentStartIndex += MAX_RESULTS;
-        update();
-    }
+//    private void updateCache(int key) {
+//        if(cacheLoading) {
+//            return;
+//        }
+//
+//        cacheLoading = true;
+//
+//        int cacheKey = (int)Math.floor(key / MAX_RESULTS);
+//        if(bookListItemsCache.getIfPresent(cacheKey) instanceof BookListItems) {
+//            cacheLoading = false;
+//            spinner.setVisibility(View.GONE);
+//            return;
+//        }
+//
+//        spinner.setVisibility(View.VISIBLE);
+//
+//        currentStartIndex += MAX_RESULTS;
+//        update();
+//    }
 
     private void updateBookItemListAdapterItemCount() {
         if(bookListItemsCache.asMap().keySet().size() == 0) {
@@ -317,7 +276,7 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
             itemCount += bookListItems.getItems().length;
         }
 
-        System.out.println("item count: " + itemCount);
         bookItemListAdapter.setItemCount(itemCount);
+        bookItemListAdapter.notifyDataSetChanged();
     }
 }
