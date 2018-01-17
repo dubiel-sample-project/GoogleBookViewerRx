@@ -42,7 +42,7 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
     private static final String TAG = MainActivity.class.getSimpleName();
 
     static final public int MAX_RESULTS = 40;
-    static final private int CACHE_MAX_SIZE = 8;
+    static final private int CACHE_MAX_SIZE = 3;
 
     @Inject
     GoogleBooksClient googleBooksClient;
@@ -55,7 +55,9 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
             .maximumSize(CACHE_MAX_SIZE)
             .removalListener(new RemovalListener<Integer, BookListItems>() {
                 public void onRemoval(RemovalNotification<Integer, BookListItems> removalNotification) {
-                        updateBookItemListAdapterItemCount();
+                    System.out.println("key removed: " + removalNotification.getKey());
+                    removeFromBookListItemAdapater(removalNotification.getKey());
+//                        updateBookItemListAdapter();
                 }
             })
             .build();
@@ -63,6 +65,7 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
     private Subscription subscription;
     private BookItemListAdapter bookItemListAdapter;
     private RecyclerView drawerList;
+    private RecyclerView recyclerView;
     private String currentSearchTerm = "cats";
     private Integer currentStartIndex = 0;
     private ProgressBar spinner;
@@ -110,7 +113,7 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        RecyclerView recyclerView = (RecyclerView)findViewById(R.id.book_item_list_recycler_view);
+        recyclerView = (RecyclerView)findViewById(R.id.book_item_list_recycler_view);
         recyclerView.setHasFixedSize(true);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(layoutManager);
@@ -123,12 +126,13 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
 
                 if (!cacheLoading) {
                     if (!recyclerView.canScrollVertically(-1)) {
-                        int minKey = Collections.min(bookListItemsCache.asMap().keySet());
-                        if(minKey > 0) {
-                            spinner.setVisibility(View.VISIBLE);
-                            currentStartIndex = (minKey - 1) * MAX_RESULTS;
-                            update();
-                        }
+                        System.out.println("!recyclerView.canScrollVertically(-1)");
+//                        int minKey = Collections.min(bookListItemsCache.asMap().keySet());
+//                        if(minKey > 0) {
+//                            spinner.setVisibility(View.VISIBLE);
+//                            currentStartIndex = (minKey - 1) * MAX_RESULTS;
+//                            update();
+//                        }
                     } else if (!recyclerView.canScrollVertically(1)) {
                         int maxKey = Collections.max(bookListItemsCache.asMap().keySet());
                         spinner.setVisibility(View.VISIBLE);
@@ -139,7 +143,8 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
             }
         });
 
-        bookItemListAdapter = new BookItemListAdapter(getApplicationContext(), bookListItemsCache);
+//        bookItemListAdapter = new BookItemListAdapter(getApplicationContext(), bookListItemsCache);
+        bookItemListAdapter = new BookItemListAdapter(getApplicationContext());
         recyclerView.setAdapter(bookItemListAdapter);
 
         spinner.setVisibility(View.VISIBLE);
@@ -153,7 +158,7 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
                 .subscribe(result -> {
                     int cacheKey = currentStartIndex / MAX_RESULTS;
                     bookListItemsCache.put(cacheKey, result);
-                    updateBookItemListAdapterItemCount();
+                    addToBookListItemAdapter(result);
                     spinner.setVisibility(View.GONE);
                     cacheLoading = false;
                 }, err -> {
@@ -243,20 +248,27 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
         update();
     }
 
-    private void updateBookItemListAdapterItemCount() {
-        if(bookListItemsCache.asMap().keySet().size() == 0) {
-            bookItemListAdapter.setItemCount(0);
-            return;
-        }
+    private void removeFromBookListItemAdapater(int key) {
+        bookItemListAdapter.removeKey(key);
+        recyclerView.scrollToPosition(76);
+    }
 
-        int maxKey = Collections.max(bookListItemsCache.asMap().keySet());
-        int itemCount = maxKey * MAX_RESULTS;
-        BookListItems bookListItems = bookListItemsCache.getIfPresent(maxKey);
-        if(bookListItems instanceof BookListItems) {
-            itemCount += bookListItems.getItems().length;
-        }
+    private void addToBookListItemAdapter(BookListItems bookListItems) {
+//        if(bookListItemsCache.asMap().keySet().size() == 0) {
+////            bookItemListAdapter.setItemCount(0);
+//            return;
+//        }
 
-        bookItemListAdapter.setItemCount(itemCount);
-        bookItemListAdapter.notifyDataSetChanged();
+        bookItemListAdapter.add(bookListItems);
+
+//        int maxKey = Collections.max(bookListItemsCache.asMap().keySet());
+//        int itemCount = maxKey * MAX_RESULTS;
+//        BookListItems bookListItems = bookListItemsCache.getIfPresent(maxKey);
+//        if(bookListItems instanceof BookListItems) {
+//            itemCount += bookListItems.getItems().length;
+//        }
+
+//        bookItemListAdapter.setItemCount(itemCount);
+//        bookItemListAdapter.notifyDataSetChanged();
     }
 }

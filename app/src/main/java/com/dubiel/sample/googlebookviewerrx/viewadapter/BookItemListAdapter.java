@@ -19,6 +19,12 @@ import com.dubiel.sample.googlebookviewerrx.data.BookListItem;
 import com.dubiel.sample.googlebookviewerrx.data.BookListItems;
 import com.google.common.cache.Cache;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static com.dubiel.sample.googlebookviewerrx.MainActivity.MAX_RESULTS;
 
 public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapter.ViewHolder> {
@@ -26,13 +32,13 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
     static final private String TAG = "BookItemListAdapter";
 
     private Context context;
-    private Cache<Integer, BookListItems> bookListItems;
+//    private Cache<Integer, BookListItems> bookListItems;
+    private List<BookListItem> bookListItems = new ArrayList<>();
     private int smallThumbnailWidth, smallThumbnailHeight;
     private int itemCount;
 
-    public BookItemListAdapter(Context context, Cache<Integer, BookListItems> bookListItems) {
+    public BookItemListAdapter(Context context) {
         this.context = context;
-        this.bookListItems = bookListItems;
 
         smallThumbnailWidth = context.getResources().getInteger(R.integer.small_thumbnail_width);
         smallThumbnailHeight = context.getResources().getInteger(R.integer.small_thumbnail_height);
@@ -46,18 +52,22 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
 
     @Override
     public void onBindViewHolder(final BookItemListAdapter.ViewHolder viewHolder, int i) {
-        int key = (int)Math.floor(i / MAX_RESULTS);
+        System.out.println("onBindViewHolder, i: " + i);
+//        int key = (int)Math.floor(i / (this.bookListItems.size() * MAX_RESULTS));
 
         try {
-            BookListItems currentBookListItems = bookListItems.getIfPresent(key);
+//            BookListItems currentBookListItems = bookListItems.get(key);
+//            if(currentBookListItems == null) {
+//                return;
+//            }
+//
+//            int bookListItemIndex = i % MAX_RESULTS;
+//
+//            if(bookListItemIndex >= currentBookListItems.getItems().length) {
+//                return;
+//            }
 
-            int bookListItemIndex = i % MAX_RESULTS;
-
-            if(bookListItemIndex >= currentBookListItems.getItems().length) {
-                return;
-            }
-
-            BookListItem currentBookListItem = currentBookListItems.getItems()[bookListItemIndex];
+            BookListItem currentBookListItem = bookListItems.get(i);
 
             viewHolder.volumeId = currentBookListItem.getId();
             try {
@@ -85,14 +95,55 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
 
     @Override
     public int getItemCount() {
-        if(bookListItems.size() == 0) {
-            return 0;
-        }
-        return itemCount;
+//        if(bookListItems.size() == 0) {
+//            return 0;
+//        }
+        return bookListItems.size();
     }
 
     public void setItemCount(int itemCount) {
-        this.itemCount = itemCount;
+//        this.itemCount = itemCount;
+    }
+
+    public void add(BookListItems bookListItems) {
+//        int key = this.bookListItems.size();
+//        if(!this.bookListItems.isEmpty() && this.bookListItems.size() > 1) {
+//            int minKey = Collections.min(this.bookListItems.keySet());
+//            this.bookListItems.remove(minKey);
+//        }
+//        this.bookListItems.put(key, bookListItems);
+//        notifyItemRangeInserted(key * MAX_RESULTS, MAX_RESULTS);
+        for(BookListItem item : bookListItems.getItems()) {
+            this.bookListItems.add(item);
+        }
+        notifyDataSetChanged();
+
+//        int start = key * MAX_RESULTS;
+//        if(key < 0) {
+//            key = 0;
+//        }
+//        int end = start + MAX_RESULTS;
+//        for(int i = start; i < end; i++) {
+//        }
+    }
+
+    public void removeKey(int key) {
+//        int start = key * MAX_RESULTS;
+        int start = 0;
+        int end = start + MAX_RESULTS;
+        for(int i = start; i < end; i++) {
+            this.bookListItems.remove(i);
+        }
+        notifyDataSetChanged();
+
+//        if(this.bookListItems.containsKey(key)) {
+//            this.bookListItems.remove(key);
+//            int positionStart = (key - 1) * MAX_RESULTS;
+//            if(positionStart < 0) {
+//                positionStart = 0;
+//            }
+//            notifyItemRangeRemoved(positionStart, MAX_RESULTS);
+//        }
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder{
