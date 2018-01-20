@@ -9,6 +9,7 @@
     <string name="popular_searches">Popular Searches</string>
     <string name="no_description_available">No Description available</string>
     <string name="google_books_api_key">AIzaSyBaTPJ5YXt5V6VSuvnxhIgj4NJZ1vJqtmM</string>
+    <string name="search_error">Oops! Didn\'t find anything. Please try again.</string>
     <string-array name="category_array">
         <item>cats</item>
         <item>nature</item>

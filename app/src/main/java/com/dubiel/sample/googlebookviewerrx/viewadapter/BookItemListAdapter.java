@@ -19,6 +19,8 @@ import com.dubiel.sample.googlebookviewerrx.data.BookListItem;
 import com.dubiel.sample.googlebookviewerrx.data.BookListItems;
 import com.google.common.cache.Cache;
 
+import java.util.Collections;
+
 import static com.dubiel.sample.googlebookviewerrx.MainActivity.MAX_RESULTS;
 
 public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapter.ViewHolder> {
@@ -27,15 +29,10 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
 
     private Context context;
     private Cache<Integer, BookListItems> bookListItems;
-    private int smallThumbnailWidth, smallThumbnailHeight;
-    private int itemCount;
 
     public BookItemListAdapter(Context context, Cache<Integer, BookListItems> bookListItems) {
         this.context = context;
         this.bookListItems = bookListItems;
-
-        smallThumbnailWidth = context.getResources().getInteger(R.integer.small_thumbnail_width);
-        smallThumbnailHeight = context.getResources().getInteger(R.integer.small_thumbnail_height);
     }
 
     @Override
@@ -46,12 +43,24 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
 
     @Override
     public void onBindViewHolder(final BookItemListAdapter.ViewHolder viewHolder, int i) {
-        int key = (int)Math.floor(i / MAX_RESULTS);
+        System.out.println("onBindViewHolder, i: " + i);
+        System.out.println("onBindViewHolder, min keyset: " + Collections.min(bookListItems.asMap().keySet()));
+
+        int offset = Collections.min(bookListItems.asMap().keySet()) * MAX_RESULTS;
+        System.out.println("onBindViewHolder, offset: " + offset);
+
+        int position = i + offset;
+        System.out.println("onBindViewHolder, position: " + position);
+
+        int key = (int)Math.floor(position / MAX_RESULTS);
+
+        System.out.println("onBindViewHolder, key: " + key);
 
         try {
             BookListItems currentBookListItems = bookListItems.getIfPresent(key);
 
-            int bookListItemIndex = i % MAX_RESULTS;
+            int bookListItemIndex = position % MAX_RESULTS;
+            System.out.println("onBindViewHolder, bookListItemIndex: " + bookListItemIndex);
 
             if(bookListItemIndex >= currentBookListItems.getItems().length) {
                 return;
@@ -88,11 +97,7 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
         if(bookListItems.size() == 0) {
             return 0;
         }
-        return itemCount;
-    }
-
-    public void setItemCount(int itemCount) {
-        this.itemCount = itemCount;
+        return (int)bookListItems.size() * MAX_RESULTS;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder{
