@@ -2,17 +2,19 @@ package com.dubiel.sample.googlebookviewerrx.data;
 
 
 public class VolumeInfo {
-    public String title;
+    public String title = "";
     public ImageLinks imageLinks;
-    public String[] authors;
-    public String description;
-    public String infoLink;
+    public String[] authors = {};
+    public String description = "";
+    public String infoLink = "";
 
     public VolumeInfo() {
+        this.imageLinks = new ImageLinks();
     }
 
     public VolumeInfo(String title) {
         this.title = title;
+        this.imageLinks = new ImageLinks();
     }
 
     public VolumeInfo(String title, ImageLinks imageLinks) {

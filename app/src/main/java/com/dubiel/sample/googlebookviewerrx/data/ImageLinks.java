@@ -4,6 +4,9 @@ public class ImageLinks {
     public String smallThumbnail;
     public String small;
 
+    public ImageLinks() {
+    }
+
     public ImageLinks(String smallThumbnail) {
         this.smallThumbnail = smallThumbnail;
     }

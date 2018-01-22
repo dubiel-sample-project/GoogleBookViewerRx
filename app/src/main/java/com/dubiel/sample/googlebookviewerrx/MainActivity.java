@@ -58,7 +58,7 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
             .maximumSize(CACHE_MAX_SIZE)
             .removalListener(new RemovalListener<Integer, BookListItems>() {
                 public void onRemoval(RemovalNotification<Integer, BookListItems> removalNotification) {
-                    System.out.println("onRemoval: " + removalNotification.getKey());
+//                    System.out.println("onRemoval: " + removalNotification.getKey());
                 }
             })
             .build();
@@ -127,6 +127,9 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
                 if (!cacheLoading) {
                     if (!recyclerView.canScrollVertically(-1)) {
                         scrollStatus = SCROLL_STATUS.SCROLLING_UP;
+                        if(bookListItemsCache.asMap().keySet() == null) {
+                            return;
+                        }
                         int minKey = Collections.min(bookListItemsCache.asMap().keySet());
                         if(minKey == 0) {
                             return;
@@ -159,7 +162,7 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
                 .subscribe(result -> {
                     cacheLoading = false;
                     spinner.setVisibility(View.GONE);
-                    if(result.getItems().length == 0) {
+                    if(result.getItems() == null  || result.getItems().length == 0) {
                         Toast.makeText(getApplicationContext(), R.string.search_error, Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -253,18 +256,20 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
         spinner.setVisibility(View.VISIBLE);
         bookListItemsCache.invalidateAll();
         currentStartIndex = 0;
-        System.out.println("current search term: " + currentSearchTerm);
-        System.out.println("current start index: " + currentStartIndex);
         update();
     }
 
     private void updateBookItemListAdapter() {
-        bookItemListAdapter.notifyDataSetChanged();
+        int firstCompletelyVisibleItemPosition = ((LinearLayoutManager) bookList.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+        int scrollY = bookList.getScrollY();
+        System.out.println("scrollY: " + scrollY);
+        bookItemListAdapter.update();
         if(scrollStatus == SCROLL_STATUS.SCROLLING_UP) {
-            bookList.scrollToPosition(MAX_RESULTS + 3);
+            bookList.scrollToPosition(firstCompletelyVisibleItemPosition);
         } else if(scrollStatus == SCROLL_STATUS.SCROLLING_DOWN) {
-            int position = (int)(bookListItemsCache.size() - 1) * MAX_RESULTS - 4 ;
-            bookList.scrollToPosition(position);
+//            int offset = Collections.min(bookListItemsCache.asMap().keySet()) * MAX_RESULTS;
+//            bookList.scrollToPosition(firstCompletelyVisibleItemPosition - offset);
+            bookList.setScrollY(scrollY);
         }
     }
 }

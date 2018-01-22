@@ -33,4 +33,6 @@ ext {
     espressoVersion = "2.2.2"
     daggerVersion = "2.11"
     retrofitVersion = "2.3.0"
+    leakCanaryVersion = "1.5.4"
+    butterknifeVersion = "8.4.0"
 }

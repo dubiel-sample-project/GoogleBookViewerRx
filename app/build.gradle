@@ -43,6 +43,8 @@ dependencies {
     annotationProcessor 'com.google.dagger:dagger-compiler:' + rootProject.daggerVersion
     compile 'com.google.dagger:dagger-android-support:' + rootProject.daggerVersion
     annotationProcessor 'com.google.dagger:dagger-android-processor:' + rootProject.daggerVersion
+    compile 'com.jakewharton:butterknife:' + rootProject.butterknifeVersion
+    annotationProcessor 'com.jakewharton:butterknife-compiler:' + rootProject.butterknifeVersion
     androidTestCompile 'com.android.support:support-v4:' + rootProject.supportLibVersion
     androidTestCompile 'com.android.support:design:' + rootProject.supportLibVersion
 
@@ -58,6 +60,9 @@ dependencies {
 
     androidTestCompile 'com.android.support.test.espresso:espresso-intents:' + rootProject.espressoVersion
     androidTestCompile 'com.android.support.test.espresso:espresso-web:' + rootProject.espressoVersion
+
+    debugCompile 'com.squareup.leakcanary:leakcanary-android:' + rootProject.leakCanaryVersion
+    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:' + rootProject.leakCanaryVersion
 
 //    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
 //        exclude group: 'com.android.support', module: 'support-annotations'

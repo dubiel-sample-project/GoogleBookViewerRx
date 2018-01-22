@@ -21,6 +21,9 @@ import com.google.common.cache.Cache;
 
 import java.util.Collections;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 import static com.dubiel.sample.googlebookviewerrx.MainActivity.MAX_RESULTS;
 
 public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapter.ViewHolder> {
@@ -29,6 +32,7 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
 
     private Context context;
     private Cache<Integer, BookListItems> bookListItems;
+    private int itemCount = 0;
 
     public BookItemListAdapter(Context context, Cache<Integer, BookListItems> bookListItems) {
         this.context = context;
@@ -43,25 +47,13 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
 
     @Override
     public void onBindViewHolder(final BookItemListAdapter.ViewHolder viewHolder, int i) {
-        System.out.println("onBindViewHolder, i: " + i);
-        System.out.println("onBindViewHolder, min keyset: " + Collections.min(bookListItems.asMap().keySet()));
-
-        int offset = Collections.min(bookListItems.asMap().keySet()) * MAX_RESULTS;
-        System.out.println("onBindViewHolder, offset: " + offset);
-
-        int position = i + offset;
-        System.out.println("onBindViewHolder, position: " + position);
-
+        int position = i + Collections.min(bookListItems.asMap().keySet()) * MAX_RESULTS;
         int key = (int)Math.floor(position / MAX_RESULTS);
-
-        System.out.println("onBindViewHolder, key: " + key);
 
         try {
             BookListItems currentBookListItems = bookListItems.getIfPresent(key);
 
             int bookListItemIndex = position % MAX_RESULTS;
-            System.out.println("onBindViewHolder, bookListItemIndex: " + bookListItemIndex);
-
             if(bookListItemIndex >= currentBookListItems.getItems().length) {
                 return;
             }
@@ -94,15 +86,21 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
 
     @Override
     public int getItemCount() {
+        return itemCount;
+    }
+
+    public void update() {
+        notifyDataSetChanged();
         if(bookListItems.size() == 0) {
-            return 0;
+            itemCount = 0;
         }
-        return (int)bookListItems.size() * MAX_RESULTS;
+        itemCount = Math.max((int)bookListItems.size() - 1, 0) * MAX_RESULTS +
+                bookListItems.getIfPresent(Collections.max(bookListItems.asMap().keySet())).getItems().length;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder{
-        private ImageView smallThumbnail;
-        private TextView title;
+        @BindView(R.id.book_item_title) TextView title;
+        @BindView(R.id.book_item_small_thumbnail) ImageView smallThumbnail;
 
         public final View view;
         public String volumeId;
@@ -111,9 +109,7 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
             super(view);
 
             this.view = view;
-
-            title = (TextView)view.findViewById(R.id.book_item_title);
-            smallThumbnail = (ImageView) view.findViewById(R.id.book_item_small_thumbnail);
+            ButterKnife.bind(this, view);
         }
     }
 

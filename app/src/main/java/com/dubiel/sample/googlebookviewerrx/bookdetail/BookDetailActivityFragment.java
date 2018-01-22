@@ -32,7 +32,6 @@ public class BookDetailActivityFragment extends DaggerFragment {
     GoogleBooksClient googleBooksClient;
 
     private String volumeId;
-    private int smallImageWidth, smallImageHeight;
     private Subscription subscription;
 
     public BookDetailActivityFragment() {
@@ -49,9 +48,6 @@ public class BookDetailActivityFragment extends DaggerFragment {
         super.onCreate(savedInstanceState);
 
         if (getArguments().containsKey(ARG_VOLUME_ID)) {
-            smallImageWidth = getContext().getResources().getInteger(R.integer.small_image_width);
-            smallImageHeight = getContext().getResources().getInteger(R.integer.small_image_height);
-
             volumeId = getArguments().getString(ARG_VOLUME_ID);
         }
     }
@@ -84,6 +80,8 @@ public class BookDetailActivityFragment extends DaggerFragment {
                         Log.i(TAG, "npe " + volumeId + ", " + e.getMessage());
                     }
 
+                    title.setText(bookDetailItem.getVolumeInfo().getTitle());
+
                     if(bookDetailItem.getVolumeInfo().getAuthors() != null && bookDetailItem.getVolumeInfo().getAuthors().length > 0) {
                         authors.setText(Joiner.on("\n").join(bookDetailItem.getVolumeInfo().getAuthors()));
                     }
@@ -94,9 +92,7 @@ public class BookDetailActivityFragment extends DaggerFragment {
                         description.loadDataWithBaseURL(null, getContext().getResources().getString(R.string.no_description_available), "text/html", "utf-8", null);
                     }
 
-                    if(bookDetailItem.getVolumeInfo().getInfoLink() != null) {
-                        infoLink.setText(bookDetailItem.getVolumeInfo().getInfoLink());
-                    }
+                    infoLink.setText(bookDetailItem.getVolumeInfo().getInfoLink());
                 }, throwable -> {
                     Log.i(TAG, throwable.getMessage());
                 });
