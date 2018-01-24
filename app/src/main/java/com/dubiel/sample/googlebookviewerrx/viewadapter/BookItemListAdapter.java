@@ -93,9 +93,10 @@ public class BookItemListAdapter extends RecyclerView.Adapter<BookItemListAdapte
         notifyDataSetChanged();
         if(bookListItems.size() == 0) {
             itemCount = 0;
+        } else {
+            itemCount = Math.max((int) bookListItems.size() - 1, 0) * MAX_RESULTS +
+                    bookListItems.getIfPresent(Collections.max(bookListItems.asMap().keySet())).getItems().length;
         }
-        itemCount = Math.max((int)bookListItems.size() - 1, 0) * MAX_RESULTS +
-                bookListItems.getIfPresent(Collections.max(bookListItems.asMap().keySet())).getItems().length;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder{

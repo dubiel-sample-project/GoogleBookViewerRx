@@ -22,8 +22,6 @@ import com.dubiel.sample.googlebookviewerrx.viewadapter.BookItemListAdapter;
 import com.dubiel.sample.googlebookviewerrx.viewadapter.DrawerListAdapter;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
 
 import java.util.Collections;
 
@@ -42,7 +40,7 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
         DrawerListAdapter.OnDrawerItemClickListener {
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    enum SCROLL_STATUS {SCROLLING_UP, SCROLLING_DOWN};
+    enum SCROLL_STATUS {SCROLLING_UP, SCROLLING_DOWN}
 
     static final public int MAX_RESULTS = 40;
     static final public int CACHE_MAX_SIZE = 3;
@@ -56,11 +54,11 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
     @NonNull
     private final Cache<Integer, BookListItems> bookListItemsCache = CacheBuilder.newBuilder()
             .maximumSize(CACHE_MAX_SIZE)
-            .removalListener(new RemovalListener<Integer, BookListItems>() {
-                public void onRemoval(RemovalNotification<Integer, BookListItems> removalNotification) {
+//            .removalListener(new RemovalListener<Integer, BookListItems>() {
+//                public void onRemoval(RemovalNotification<Integer, BookListItems> removalNotification) {
 //                    System.out.println("onRemoval: " + removalNotification.getKey());
-                }
-            })
+//                }
+//            })
             .build();
 
     private Subscription subscription;
@@ -232,9 +230,7 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
 
     @Override
     public void onDrawerItemClick(View view, int position) {
-        String categoryString = getResources().getStringArray(R.array.category_array)[position];
-
-        currentSearchTerm = categoryString;
+        currentSearchTerm = getResources().getStringArray(R.array.category_array)[position];
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -255,21 +251,20 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
     private void search() {
         spinner.setVisibility(View.VISIBLE);
         bookListItemsCache.invalidateAll();
+        bookItemListAdapter.update();
         currentStartIndex = 0;
         update();
     }
 
     private void updateBookItemListAdapter() {
-        int firstCompletelyVisibleItemPosition = ((LinearLayoutManager) bookList.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
-        int scrollY = bookList.getScrollY();
-        System.out.println("scrollY: " + scrollY);
+        LinearLayoutManager lm = ((LinearLayoutManager)bookList.getLayoutManager());
+        int positionDiff = lm.findLastVisibleItemPosition() - lm.findFirstVisibleItemPosition();
         bookItemListAdapter.update();
         if(scrollStatus == SCROLL_STATUS.SCROLLING_UP) {
-            bookList.scrollToPosition(firstCompletelyVisibleItemPosition);
+            bookList.scrollToPosition(MAX_RESULTS + positionDiff);
         } else if(scrollStatus == SCROLL_STATUS.SCROLLING_DOWN) {
-//            int offset = Collections.min(bookListItemsCache.asMap().keySet()) * MAX_RESULTS;
-//            bookList.scrollToPosition(firstCompletelyVisibleItemPosition - offset);
-            bookList.setScrollY(scrollY);
+            int position = (int)(bookListItemsCache.size() - 1) * MAX_RESULTS - (positionDiff + 1);
+            bookList.scrollToPosition(position);
         }
     }
 }
