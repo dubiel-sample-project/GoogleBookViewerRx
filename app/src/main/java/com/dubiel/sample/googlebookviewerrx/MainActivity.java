@@ -259,7 +259,9 @@ public class MainActivity extends DaggerAppCompatActivity implements HasFragment
     private void updateBookItemListAdapter() {
         LinearLayoutManager lm = ((LinearLayoutManager)bookList.getLayoutManager());
         int positionDiff = lm.findLastVisibleItemPosition() - lm.findFirstVisibleItemPosition();
+
         bookItemListAdapter.update();
+
         if(scrollStatus == SCROLL_STATUS.SCROLLING_UP) {
             bookList.scrollToPosition(MAX_RESULTS + positionDiff);
         } else if(scrollStatus == SCROLL_STATUS.SCROLLING_DOWN) {
